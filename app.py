@@ -1,4 +1,3 @@
-#MULTI-PDFS BASED CHATBOT + PDFS SORTED ACC TO UPLOAD TIME 
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -12,7 +11,7 @@ from htmltemplates import css, bot_template, user_template
 import os
 from datetime import datetime
 
-def get_pdf_text(pdf):
+def get_pdf_text(pdf):  
     text = ""
     pdf_reader = PdfReader(pdf)
     for page in pdf_reader.pages:
@@ -35,9 +34,10 @@ def get_vectorstore(text_chunks):
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
-def get_convo(vector_store):
+def get_convo(vector_store, system_prompt):
     llm = ChatOpenAI()
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+    memory.save_context({"content": system_prompt}, {"content": "System prompt initialized."})
     convo_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vector_store.as_retriever(),
@@ -56,6 +56,12 @@ def handle_user_input(user_question):
             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
 
 def main():
+    # System prompt template to prioritize most recently uploaded PDFs
+    system_prompt_template = """
+    You are a helpful assistant. When retrieving answers, always prioritize the most recently uploaded PDF first, 
+    then proceed to the next most recent, and so on. Make sure to provide accurate and relevant information based on the PDFs.
+    """
+
     # API keys are stored in a .env file
     load_dotenv()
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -126,7 +132,7 @@ def main():
                     combined_vector_store = get_vectorstore(all_text_chunks)
 
                     st.success("PDFs processed successfully!")
-                    st.session_state.convo = get_convo(combined_vector_store)
+                    st.session_state.convo = get_convo(combined_vector_store, system_prompt_template)
 
 if __name__ == '__main__':
     main()
