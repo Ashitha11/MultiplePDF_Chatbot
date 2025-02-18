@@ -1,0 +1,4 @@
+Libraries/packages required 
+
+pip install streamlit python-dotenv PyPDF2 langchain faiss-cpu openai
+pip install langchain-community langchain-openai
