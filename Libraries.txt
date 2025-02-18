@@ -2,3 +2,13 @@ Libraries/packages required
 
 pip install streamlit python-dotenv PyPDF2 langchain faiss-cpu openai
 pip install langchain-community langchain-openai
+
+
+streamlit --> Streamlit, version 1.42.0
+dotenv --> dotenv, version 1.0.1
+PyPDF2 --> Version: 3.0.1
+langchain --> Version: 0.3.18
+langchain-community --> Version: 0.3.17
+faiss-cpu --> Version: 1.10.0
+openai --> openai 1.62.0
+langchain-openai --> Version: 0.3.5
