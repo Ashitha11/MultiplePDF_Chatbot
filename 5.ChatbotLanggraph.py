@@ -1,5 +1,3 @@
-#1ST SUCCESSFUL INTEGRATION OF THE CHATBOT WITH LANGGRAPH 
-
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
