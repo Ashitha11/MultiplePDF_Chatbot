@@ -1,3 +1,5 @@
+#1ST SUCCESSFUL INTEGRATION OF THE CHATBOT WITH LANGGRAPH 
+
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -10,6 +12,7 @@ from langchain.chains import ConversationalRetrievalChain
 from typing import TypedDict, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from datetime import datetime
+from htmltemplates import css, bot_template, user_template
 import os
 
 # Load environment variables
@@ -64,24 +67,20 @@ def build_vector_store_node(state: ChatbotState) -> ChatbotState:
 
 # Node 3: Initialize the chatbot
 def initialize_chatbot_node(state: ChatbotState) -> ChatbotState:
-    # Skip initialization if convo_chain already exists
-    if state.get("convo_chain"):
-        return state
-    
     if not state.get("vector_store"):
         return state
     
     system_prompt = """
-You are a friendly and helpful assistant. Answer the user's questions based on the provided documents.
-After each answer, suggest a relevant follow-up question to keep the conversation engaging.
-For example, if the user asks about a topic, suggest exploring a related subtopic or asking for more details.
+You are a helpful and intelligent AI assistant designed to answer questions based on uploaded PDFs. 
+Maintain the context of the conversation throughout and provide accurate, relevant answers by 
+prioritizing the most recent PDFs. After responding, suggest insightful follow-up prompts to guide 
+deeper exploration of the topic. Ensure clarity, coherence, and a natural conversational flow.
 """
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-    # Add system prompt as the initial AI message
-    memory.chat_memory.add_ai_message(system_prompt)
+    memory.save_context({"content": system_prompt}, {"content": "System prompt initialized."})
     
     convo_chain = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(temperature=0.7, model="gpt-3.5-turbo"),  # No system_prompt parameter here
+        llm=ChatOpenAI(temperature=0.6),
         retriever=state["vector_store"].as_retriever(search_kwargs={"k": 3}),
         memory=memory
     )
@@ -121,6 +120,8 @@ def build_graph():
 # Streamlit UI and integration with LangGraph
 def main():
     st.set_page_config(page_title="Chat with PDFs", page_icon="📚")
+    # Assuming css, bot_template, user_template are defined elsewhere
+    st.write(css, unsafe_allow_html=True)
     
     # Initialize session state
     if "graph" not in st.session_state:
@@ -140,31 +141,8 @@ def main():
     st.header("Chat with multiple PDFs 📚")
     st.write("Upload PDFs and interact with them!")
     
-    # Templates for chat display
-    user_template = "<div style='text-align: right; color: blue;'>{{MSG}}</div>"
-    bot_template = "<div style='text-align: left; color: green;'>{{MSG}}</div>"
-    
-    # Display chat history (outside query block to always show)
-    if st.session_state.chatbot_state["chat_history"]:
-        for i in range(1, len(st.session_state.chatbot_state["chat_history"])):  # Skip system prompt
-            message = st.session_state.chatbot_state["chat_history"][i]
-            if i % 2 == 1:  # User messages
-                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-            else:  # Bot messages
-                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-    
     # User query input
     user_question = st.text_input("Ask a question")
-    
-    # Handle user query
-    if user_question:
-        with st.spinner("Generating response..."):
-            query_state = st.session_state.chatbot_state.copy()
-            query_state["user_query"] = user_question
-            query_state["response"] = ""  # Reset response for new query
-            
-            result = st.session_state.graph.invoke(query_state)
-            st.session_state.chatbot_state = result
     
     # Sidebar for PDF uploads
     with st.sidebar:
@@ -189,6 +167,23 @@ def main():
                 st.write(f"🆕 Most Recently Uploaded PDF: **{most_recent_pdf}**")
                 
                 st.success("PDFs processed successfully!")
+    
+    # Handle user query
+    if user_question:
+        with st.spinner("Generating response..."):
+            query_state = st.session_state.chatbot_state.copy()
+            query_state["user_query"] = user_question
+            query_state["response"] = ""  # Reset response for new query
+            
+            result = st.session_state.graph.invoke(query_state)
+            st.session_state.chatbot_state = result
+            
+            # Display chat history (simplified, adapt with your templates)
+            for i, message in enumerate(result["chat_history"]):
+                if i % 2 == 0:
+                    st.write(f"User: {message.content}")
+                else:
+                    st.write(f"Bot: {message.content}")
 
 if __name__ == "__main__":
     main()
