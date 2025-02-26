@@ -1,0 +1,4 @@
+- must display chat history 
+- must preserve context --> storing user interactions into a DB like SQLite (or) MongoDB (or) Llamaindex
+- learn how to fine tune models for a more natural and witty conversation structure 
+- what about training data?
