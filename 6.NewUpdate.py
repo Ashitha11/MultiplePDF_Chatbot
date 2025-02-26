@@ -1,5 +1,3 @@
-#1ST SUCCESSFUL INTEGRATION OF THE CHATBOT WITH LANGGRAPH 
-
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -120,7 +118,6 @@ def build_graph():
 # Streamlit UI and integration with LangGraph
 def main():
     st.set_page_config(page_title="Chat with PDFs", page_icon="📚")
-    # Assuming css, bot_template, user_template are defined elsewhere
     st.write(css, unsafe_allow_html=True)
     
     # Initialize session state
@@ -141,8 +138,18 @@ def main():
     st.header("Chat with multiple PDFs 📚")
     st.write("Upload PDFs and interact with them!")
     
-    # User query input
-    user_question = st.text_input("Ask a question")
+    # Chat history display - always show it
+    st.subheader("Chat History")
+    chat_container = st.container()  # Use a container to update chat cleanly
+    with chat_container:
+        for i, message in enumerate(st.session_state.chatbot_state["chat_history"]):
+            if i % 2 == 0:  # User message (even indices)
+                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+            else:  # Bot message (odd indices)
+                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+    
+    # User query input - placed below chat history for natural flow
+    user_question = st.text_input("Ask a question", key="user_input")
     
     # Sidebar for PDF uploads
     with st.sidebar:
@@ -150,22 +157,18 @@ def main():
         pdf_files = st.file_uploader("Choose PDF files", accept_multiple_files=True)
         if st.button("Upload") and pdf_files:
             with st.spinner("Processing PDFs..."):
-                # Update state with uploaded PDFs
                 initial_state = st.session_state.chatbot_state.copy()
                 initial_state["pdf_files"] = pdf_files
                 
-                # Run the graph up to chatbot initialization
                 result = st.session_state.graph.invoke(initial_state)
                 st.session_state.chatbot_state = result
                 
-                # Display uploaded PDFs
                 sorted_pdfs = sorted(((pdf, datetime.now()) for pdf in pdf_files), key=lambda x: x[1], reverse=True)
                 st.write("Uploaded PDFs (Most Recent First):")
                 for pdf, timestamp in sorted_pdfs:
                     st.write(f"📄 {pdf.name} (Uploaded at: {timestamp})")
                 most_recent_pdf = sorted_pdfs[-1][0].name
                 st.write(f"🆕 Most Recently Uploaded PDF: **{most_recent_pdf}**")
-                
                 st.success("PDFs processed successfully!")
     
     # Handle user query
@@ -178,12 +181,7 @@ def main():
             result = st.session_state.graph.invoke(query_state)
             st.session_state.chatbot_state = result
             
-            # Display chat history (simplified, adapt with your templates)
-            for i, message in enumerate(result["chat_history"]):
-                if i % 2 == 0:
-                    st.write(f"User: {message.content}")
-                else:
-                    st.write(f"Bot: {message.content}")
+            # No need to display here - the chat_container above handles it now
 
 if __name__ == "__main__":
     main()
