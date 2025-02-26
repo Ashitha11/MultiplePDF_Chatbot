@@ -1,3 +1,4 @@
+#able to compare data across PDFS and put them in table form 
 import streamlit as st
 from dotenv import load_dotenv
 import pdfplumber
