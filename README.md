@@ -62,10 +62,6 @@ Ensure you have:
 
 - Adds multimodal capabilities (text + images) using RAG for better context understanding.
 
-## Screenshots
-
-(Screenshots for each version will be included here.)
-
 ## Example Queries
 
 - "Summarize the key points from the latest uploaded PDF."
