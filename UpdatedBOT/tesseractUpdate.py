@@ -81,11 +81,14 @@ def handle_user_input(user_question):
     else:
         confidence_scores = [100]
     
+    # Display chat messages, excluding the system prompt initialization message
     for i, message in enumerate(st.session_state.chat_history):
-        if i % 2 == 0:
+        if i == 0:  # Skip the first system prompt message
+            continue
+        if i % 2 == 1:  # User message
             st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-        else:
-            confidence = confidence_scores[i // 2] if i // 2 < len(confidence_scores) else 100
+        else:  # Bot message
+            confidence = confidence_scores[(i - 1) // 2] if (i - 1) // 2 < len(confidence_scores) else 100
             st.write(bot_template.replace("{{MSG}}", f"{message.content} \n\n\n **Confidence: {confidence:.2f}%**"), unsafe_allow_html=True)
 
 def main():
