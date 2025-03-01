@@ -1,4 +1,5 @@
 #This chatbot is capable of reading answers from mutliple PDFS + also can read handwritten PDFs (with the help of tesseract-ocr)
+
 import streamlit as st
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
@@ -28,7 +29,7 @@ def extract_text_from_pdf(pdf):
 
 def extract_images_from_pdf(pdf):
     """Extract images from a PDF file using PyMuPDF."""
-    doc = fitz.open(pdf)
+    doc = fitz.open(stream=pdf.read(), filetype="pdf")
     images = []
     for page_number in range(len(doc)):
         page = doc.load_page(page_number)
@@ -101,7 +102,7 @@ def main():
     st.write("Upload PDFs and interact with them!")
     
     user_question = st.text_input("Ask a question")
-    if user_question:
+    if st.button("Enter") and user_question:
         handle_user_input(user_question)
     
     with st.sidebar:
