@@ -1,4 +1,4 @@
-#This chatbot is capable of reading answers from mutliple PDFS + also can read handwritten PDFs (with the help of tesseract-ocr)
+#This chatbot is capable of reading answers from mutliple PDFS + also can read handwritten PDFs (with the help of tesseract-ocr) + understands tables and images      
 
 import streamlit as st
 from dotenv import load_dotenv
